@@ -8,8 +8,8 @@
             label="Insert Link"
             v-model="qrPopupText"
             :rules="[
-            (val) => !!val || 'Link field cannot be empty',
-             (val) => val.length < 50 || 'Please use shorter links or text',
+              (val) => !!val || 'Link field cannot be empty',
+              (val) => val.length < 100 || 'Please use shorter links or text',
             ]"
             class="q-py-lg"
           />
@@ -60,8 +60,12 @@
         v-for="linkHistory in qrLinksHistory"
         :key="linkHistory.id"
       >
-        <q-list>
-          <q-item clickable v-ripple>
+        <q-list @click="test1(qrLinksHistory)">
+          <q-item
+            clickable
+            v-ripple
+            @click="getStoredLink(linkHistory.Linkname, linkHistory.Linkname)"
+          >
             <q-item-section avatar>
               <q-icon color="primary" name="link" />
             </q-item-section>
@@ -113,36 +117,57 @@ export default defineComponent({
     },
     generateQrCode: function () {
       if (this.qrPopupText != "" && this.qrPopupText != "\n") {
-        this.qrCodePopup = true;
-        this.addLinkToHistory(this.qrPopupText);
-        try {
-          setTimeout(() => {
-            new QRious({
-              element: document.getElementById("qrcode"),
-              value: this.qrPopupText,
-            });
-            this.qrCodeLoader = false;
-            console.log(this.qrCodeLoader);
-            document.getElementById("qr-code-loader").style.display = "none";
-            document.getElementById("download-qr-code-button").style.display =
-              "block";
-            this.qrDownload = true;
-            this.qrLinkPopup = false;
-            console.log(this.qrPopupText.length)
-          }, 3000);
-        } catch {
-          console.log("err");
+        if (this.qrPopupText.length < 100) {
+          this.qrCodePopup = true;
+          this.addLinkToHistory(this.qrPopupText);
+          try {
+            setTimeout(() => {
+              new QRious({
+                level: "H",
+                padding: 25,
+                size: 300,
+                element: document.getElementById("qrcode"),
+                value: this.qrPopupText,
+              });
+              this.qrCodeLoader = false;
+              // console.log(this.qrCodeLoader);
+              document.getElementById("qr-code-loader").style.display = "none";
+              document.getElementById("download-qr-code-button").style.display =
+                "block";
+              this.qrDownload = true;
+              this.qrLinkPopup = false;
+              // console.log(this.qrPopupText.length)
+            }, 3000);
+          } catch {
+            console.log("err");
+          }
+        } else {
+          console.log("use shorter characters");
         }
       }
-      if(this.qrPopupText.length > 50){
-        console.log('use shorter characters')
-      }
-       else {
+      // if(this.qrPopupText.length > 50){
+      //   console.log('use shorter characters')
+      // }
+      else {
         console.log("empty");
         //  $q.notify({
         //         message: "Please write some content"
         //       });
       }
+    },
+    getStoredLink: function (link, deleteIndex) {
+      this.qrPopupText = link;
+      this.generateQrCode();
+      // console.log(deleteIndex)
+      // console.log(typeof(deleteIndex))
+      // console.log(deleteIndex.Linkname)
+      var posn = this.qrLinksHistory.map(function (e) {
+        return e;
+      });
+      console.log(posn.indexOf());
+      // console.log(this.qrLinksHistory)
+      // console.log(this.qrLinksHistory.indexOf(deleteIndex))
+      this.deleteHistoryItem(deleteIndex);
     },
     downloadQrCode: function () {
       html2canvas(document.querySelector("#qrcode")).then((canvas) => {
@@ -176,6 +201,11 @@ export default defineComponent({
         "qrLinksHistoryStore",
         JSON.stringify(this.qrLinksHistory)
       );
+    },
+    deleteHistoryItem: function (itemIndex) {},
+    test1: function (val) {
+      console.log(val.id);
+      console.log(typeof val);
     },
   },
   created() {
